@@ -12,7 +12,6 @@ local Train = require 'train'
 local Utils = require 'utils'
 local GenerateAns = require 'generateAns'
 
---luhan little gg
 -- hyper-parameters 
 batchSize = 64
 rho = 34 -- sequence length
@@ -66,5 +65,4 @@ else
 	GenerateAns.generateAns(ds_test, protos, opt.ans_path)
 end
 
-print('test git')
 
