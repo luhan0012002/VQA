@@ -66,5 +66,5 @@ else
 	GenerateAns.generateAns(ds_test, protos, opt.ans_path)
 end
 
-
+print('test git')
 
