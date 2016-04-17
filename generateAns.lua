@@ -14,7 +14,6 @@ local model_utils = require 'model_utils'
 
 local GenerateAns = {}
 
-
 function GenerateAns.generateAns(ds_test, protos, ans_path)
 
     clones = {}
@@ -52,8 +51,8 @@ function GenerateAns.generateAns(ds_test, protos, ans_path)
 	--]]
         local totalInput = {fc7, words, conv4}
         -- forward step
-	local batchSize = words:size(1)
-        local totalOutput, err = Train.foward(clones, protos, totalInput, targets, batchSize)
+	    local batchSize = words:size(1)
+        local totalOutput, err = Train.forward(clones, protos, totalInput, targets, batchSize)
 	print(err)
 
         local outputs = totalOutput[6]
@@ -79,7 +78,7 @@ function GenerateAns.generateAns(ds_test, protos, ans_path)
         end
     end
     json_text = cjson.encode(answers)
-    print(json_text)
+    --print(json_text)
     local f = io.open(ans_path, "w")
     f:write(json_text) 
     f:close()
