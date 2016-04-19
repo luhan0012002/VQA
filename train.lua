@@ -6,13 +6,14 @@ require 'cutorch'
 require 'cunn'
 require 'PrintIdentity'
 require 'FastLSTM_padding'
-
+require 'os'
 local model_utils = require 'model_utils'
 local model = require 'model'
 local Utils = require 'utils'
+--local GenerateAns = require 'generateAns'
 local Train = {}
 
-function Train.foward(clones, protos, totalInput, targets, batchSize)
+function Train.forward(clones, protos, totalInput, targets, batchSize)
     fc7, words, conv4 = unpack(totalInput)
     ht = {}
     ct = {}
@@ -88,7 +89,7 @@ function Train.train_sgd(protos, ds, ds_val, solver_params)
                 local batchSize = words:size(1)
                 local totalInput = {fc7, words, conv4}
                 -- forward step
-                local totalOutput, err = Train.foward(clones, protos, totalInput, targets, batchSize)
+                local totalOutput, err = Train.forward(clones, protos, totalInput, targets, batchSize)
                 epoch_err = epoch_err + err         
                 -- backward step
                 Train.backward(clones, protos, totalInput, targets, totalOutput, grad_params)
@@ -96,7 +97,7 @@ function Train.train_sgd(protos, ds, ds_val, solver_params)
                 return err, grad_params
             end
 
-            local _, fs = optim.sgd(feval, params, solver_params)
+            local _, fs = optim.rmsprop(feval, params, solver_params)
             
             sanity_check_err = sanity_check_err + fs[1]
             if n % num_sanity_check == 0 then
@@ -106,6 +107,8 @@ function Train.train_sgd(protos, ds, ds_val, solver_params)
         end
 
         print(string.format("nEpoch %d ; NLL train err = %f ", epoch, epoch_err/(nBatches)))
+        --GenerateAns.generateAns(ds_val, protos, './val_ans.json')
+        --os.execute("python evaluate.py --split val --mode mc --results './val_ans.json' --verbose 1")
         local val_err = 0
         for n = 1, nBatches_val do
             local words, fc7, conv4, targets = torch.LongTensor(),torch.LongTensor(),torch.LongTensor(), torch.LongTensor() 
@@ -116,11 +119,10 @@ function Train.train_sgd(protos, ds, ds_val, solver_params)
             local batchSize = words:size(1)
             local totalInput = {fc7, words, conv4}
             -- forward step
-            local totalOutput, err = Train.foward(clones, protos, totalInput, targets, batchSize)
+            local totalOutput, err = Train.forward(clones, protos, totalInput, targets, batchSize)
             val_err = val_err + err
         end
         print(string.format("nEpoch %d ; NLL val err = %f ", epoch, val_err/(nBatches_val)))
-
         if epoch % 1 == 0 then
             local filename = paths.concat(opt.model, 'nEpoch_' .. epoch .. os.date("_%m_%d_%Y_%H_%M_%S") .. '.net')
             torch.save(filename, protos)

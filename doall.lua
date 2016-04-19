@@ -26,7 +26,8 @@ fcSize = 4096
 num_sanity_check = 300
 
 local sgd_params = {
-	learningRate = 1e-2
+	learningRate = 1e-4,
+    weightDecay = 1e-3
 }
 
 cmd = torch.CmdLine()
