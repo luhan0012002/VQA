@@ -67,7 +67,7 @@ function Train.train_sgd(protos, ds, ds_val, solver_params)
 	for epoch = 1, nEpoch do
 		local epoch_err = 0
 		local sanity_check_err = 0
-		for n = nBatches, nBatches do
+		for n = 1, nBatches do
 			-- get next training/testing batch
 			local words, fc7, conv4, targets = torch.LongTensor(),torch.LongTensor(),torch.LongTensor(), torch.LongTensor() 
 			words, fc7, conv4, targets = words:cuda(), fc7:cuda(), conv4:cuda(), targets:cuda()

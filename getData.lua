@@ -39,7 +39,7 @@ function getData.getBatchFc7(ds, indices, start_idx, end_idx)
 end
 
 function getData.getBatchConv4(ds, indices, start_idx, end_idx)               
-    local conv_path = '../conv'                           
+    local conv_path = '../conv5'                           
     local img_id = torch.LongTensor()                                              
     img_id = img_id:cuda()                                                         
     img_id:index(ds.img_id, 1, indices:sub(start_idx, end_idx))                    
