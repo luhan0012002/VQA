@@ -97,7 +97,7 @@ function Train.train_sgd(protos, ds, ds_val, solver_params)
                 return err, grad_params
             end
 
-            local _, fs = optim.rmsprop(feval, params, solver_params)
+            local _, fs = optim.sgd(feval, params, solver_params)
             
             sanity_check_err = sanity_check_err + fs[1]
             if n % num_sanity_check == 0 then

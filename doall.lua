@@ -13,7 +13,7 @@ local Utils = require 'utils'
 local GenerateAns = require 'generateAns'
 
 -- hyper-parameters 
-batchSize = 64
+batchSize = 256
 rho = 34 -- sequence length
 hiddenSize = 512
 projectSize = 1
@@ -21,7 +21,7 @@ convFeatureSize = 512
 numConvFeature = 196
 nIndex = 5305 -- input words
 nClass = 2 -- output classes
-nEpoch = 100
+nEpoch = 200
 fcSize = 4096
 num_sanity_check = 300
 
