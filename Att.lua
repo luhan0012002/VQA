@@ -15,8 +15,9 @@ function Att.attention(rnn_size, project_size, conv_feature_size, num_conv_featu
     local preactivations_reshape = nn.View(project_size):setNumInputDims(1)(preactivations)
     local activations = nn.Tanh()(preactivations_reshape)
     local e = nn.Linear(project_size, 1)(activations)
-    local e_reshape = nn.View(1,num_conv_feature):setNumInputDims(2)(e)
-    local a = nn.SoftMax()(e_reshape) 
+    local e_reshape = nn.View(num_conv_feature):setNumInputDims(2)(e)
+    local a = nn.SoftMax()(e_reshape)
+    local a_reshape = nn.View(1,3):setNumInputDims(2)(a)
     local r = nn.MM(false, false)({a, C})
     local r_reshape = nn.Reshape(conv_feature_size)(r) 
     outputs = {}
