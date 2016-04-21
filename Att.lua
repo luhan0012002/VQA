@@ -18,7 +18,7 @@ function Att.attention(rnn_size, project_size, conv_feature_size, num_conv_featu
     local e_reshape = nn.View(num_conv_feature):setNumInputDims(2)(e)
     local a = nn.SoftMax()(e_reshape)
     local a_reshape = nn.View(1,num_conv_feature):setNumInputDims(2)(a)
-    local r = nn.MM(false, false)({a, C})
+    local r = nn.MM(false, false)({a_reshape, C})
     local r_reshape = nn.Reshape(conv_feature_size)(r) 
     outputs = {}
     table.insert(outputs, r_reshape)
