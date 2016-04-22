@@ -9,7 +9,7 @@ require 'FastLSTM_padding'
 
 Utils = {}
 
-function Utils.getNextBatch(ds, indices, n, words, fc7, conv4, targets)
+function Utils.getNextBatch(ds, indices, n, words, fc7, conv4, mask, targets)
     local start_idx = (n-1) * batchSize+1
     local end_idx = n * batchSize
     if end_idx > ds.size then
@@ -18,6 +18,7 @@ function Utils.getNextBatch(ds, indices, n, words, fc7, conv4, targets)
 
     local inputs = {}
     words:index(ds.input, 1, indices:sub(start_idx, end_idx))
+    mask:index(ds.inputMask, 1, indices:sub(start_idx, end_idx))
     targets:index(ds.target, 1, indices:sub(start_idx, end_idx))
     fc7 = getData.getBatchFc7(ds, indices, start_idx, end_idx)
     conv4 = getData.getBatchConv4(ds, indices, start_idx, end_idx)
@@ -25,6 +26,7 @@ function Utils.getNextBatch(ds, indices, n, words, fc7, conv4, targets)
     table.insert(inputs, words)
     table.insert(inputs, fc7)
     table.insert(inputs, conv4)
+    table.insert(inputs, mask)
     return inputs
 end
 
@@ -33,7 +35,7 @@ function Utils.loadData(split, isShuffle)
     ds.input = ds.input:cuda()
     ds.target = ds.target:cuda()
     ds.img_id = ds.img_id:cuda()
-
+    ds.inputMask = ds.inputMask:cuda()
     local indices = torch.LongTensor(ds.size)
     
     if isShuffle then

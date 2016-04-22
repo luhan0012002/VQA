@@ -27,7 +27,7 @@ function model.buildModel(attMethod)
     protos.attention = Att.attention(hiddenSize, projectSize, convFeatureSize, numConvFeature):cuda()
     protos.wordEmbed = nn.LookupTableMaskZero(nIndex, hiddenSize):cuda()
     protos.imageEmbed = nn.Linear(fcSize, hiddenSize):cuda()
-    protos.classify = nn.Sequential():add(nn.SelectTable(2)):add(nn.Linear(hiddenSize, nClass)):add(nn.LogSoftMax()):cuda()
+    protos.classify = nn.Sequential():add(nn.Linear(hiddenSize, nClass)):add(nn.LogSoftMax()):cuda()
     protos.criterion = nn.ClassNLLCriterion():cuda()
 
     --protos.lstm, protos.wordEmbed, protos.imageEmbed, protos.classify, protos.criterion = protos.lstm:cuda(), protos.wordEmbed:cuda(), protos.imageEmbed:cuda(), protos.classify:cuda, protos.criterion:cuda()

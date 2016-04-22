@@ -98,6 +98,7 @@ function getData.read(split, rho)
     local itow = cjson.decode(itow_text)
     local ds = {} 
     local input = {}
+    local inputMask = {}
     local target = {}
     local img_id = {}
     local question = {}
@@ -109,17 +110,27 @@ function getData.read(split, rho)
         if img['split'] == split then
             for j, qa_pair in ipairs(img['qa_pairs']) do
                 ques = {}
+                mask = {}
                 for w in qa_pair['question']:gmatch("[^%s$]+")  do
-                    table.insert(ques, wtoi[w])
+                    if wtoi[w] == nil then
+                        table.insert(ques, wtoi['UNK'])
+                        table.insert(mask, 1)
+                    else
+                        table.insert(ques, wtoi[w])
+                        table.insert(mask, 1)
+                    end
                 end
                 for k, multiple_choice in ipairs(qa_pair['multiple_choices']) do
                     dat = copy(ques)
+                    datMask = copy(mask)
                     --dat = ques
                     for w in multiple_choice:gmatch("[^%s$]+")  do
                         if wtoi[w] == nil then
                             table.insert(dat, wtoi['UNK'])
+                            table.insert(datMask, 1)
                         else    
                             table.insert(dat, wtoi[w])
+                            table.insert(datMask, 1)
                         end
                         if #dat >= rho then
                             break
@@ -127,8 +138,10 @@ function getData.read(split, rho)
                     end
                     for i = #dat+1, rho do
                         table.insert(dat, 1, 0)
+                        table.insert(datMask, 1, 0)
                     end
                     table.insert(input, dat)
+                    table.insert(inputMask, datMask)
                     table.insert(target, 1)
                     table.insert(img_id, tonumber(img["image_id"]))
                     tmp, _ = string.gsub(qa_pair['question'], "%s(%p)", "%1")
@@ -138,11 +151,14 @@ function getData.read(split, rho)
                     table.insert(qa_id, tonumber(qa_pair["qa_id"]))
                 end
                 dat = copy(ques)
+                datMask = copy(mask)
                 for w in qa_pair['answer']:gmatch("[^%s$]+")  do
                     if wtoi[w] == nil then
                         table.insert(dat, wtoi['UNK'])
+                        table.insert(datMask, 1)
                     else    
                         table.insert(dat, wtoi[w])
+                        table.insert(datMask, 1)
                     end
                     if #dat >= rho then
                         break
@@ -153,8 +169,10 @@ function getData.read(split, rho)
                 end
                 for i = #dat+1, rho do
                     table.insert(dat, 1, 0)
+                    table.insert(datMask, 1, 0)
                 end
                 table.insert(input, dat)
+                table.insert(inputMask, datMask)
                 table.insert(target, 2)
                 table.insert(img_id, tonumber(img["image_id"]))
                 tmp, _ = string.gsub(qa_pair['question'], "%s(%p)", "%1")
@@ -166,6 +184,7 @@ function getData.read(split, rho)
         end
     end
     ds.input =  torch.LongTensor(input)
+    ds.inputMask = torch.LongTensor(inputMask)
     ds.target =  torch.LongTensor(target)
     ds.img_id = torch.LongTensor(img_id)
     ds.size = #target

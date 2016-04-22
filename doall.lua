@@ -13,7 +13,7 @@ local Utils = require 'utils'
 local GenerateAns = require 'generateAns'
 
 -- hyper-parameters 
-batchSize = 200
+batchSize = 128
 rho = 34 -- sequence length
 hiddenSize = 512
 projectSize = 1

@@ -22,6 +22,7 @@ function Att.attention(rnn_size, project_size, conv_feature_size, num_conv_featu
     local r_reshape = nn.Reshape(conv_feature_size)(r) 
     outputs = {}
     table.insert(outputs, r_reshape)
+    table.insert(outputs, a)
     -- packs the graph into a convenient module with standard API (:forward(), :backward())
     return nn.gModule({prev_h, C}, outputs)
 end
