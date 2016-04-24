@@ -102,6 +102,7 @@ function getData.read(split, rho)
     local target = {}
     local img_id = {}
     local question = {}
+    local answer = {}
     local choices = {}
     local qa_id = {}
     local max_len = 0
@@ -114,10 +115,10 @@ function getData.read(split, rho)
                 for w in qa_pair['question']:gmatch("[^%s$]+")  do
                     if wtoi[w] == nil then
                         table.insert(ques, wtoi['UNK'])
-                        table.insert(mask, 1)
+                        table.insert(mask, 1.0)
                     else
                         table.insert(ques, wtoi[w])
-                        table.insert(mask, 1)
+                        table.insert(mask, 1.0)
                     end
                 end
                 for k, multiple_choice in ipairs(qa_pair['multiple_choices']) do
@@ -127,10 +128,10 @@ function getData.read(split, rho)
                     for w in multiple_choice:gmatch("[^%s$]+")  do
                         if wtoi[w] == nil then
                             table.insert(dat, wtoi['UNK'])
-                            table.insert(datMask, 1)
+                            table.insert(datMask, 1.0)
                         else    
                             table.insert(dat, wtoi[w])
-                            table.insert(datMask, 1)
+                            table.insert(datMask, 1.0)
                         end
                         if #dat >= rho then
                             break
@@ -138,7 +139,7 @@ function getData.read(split, rho)
                     end
                     for i = #dat+1, rho do
                         table.insert(dat, 1, 0)
-                        table.insert(datMask, 1, 0)
+                        table.insert(datMask, 1.0, 0.0)
                     end
                     table.insert(input, dat)
                     table.insert(inputMask, datMask)
@@ -155,10 +156,10 @@ function getData.read(split, rho)
                 for w in qa_pair['answer']:gmatch("[^%s$]+")  do
                     if wtoi[w] == nil then
                         table.insert(dat, wtoi['UNK'])
-                        table.insert(datMask, 1)
+                        table.insert(datMask, 1.0)
                     else    
                         table.insert(dat, wtoi[w])
-                        table.insert(datMask, 1)
+                        table.insert(datMask, 1.0)
                     end
                     if #dat >= rho then
                         break
@@ -169,7 +170,7 @@ function getData.read(split, rho)
                 end
                 for i = #dat+1, rho do
                     table.insert(dat, 1, 0)
-                    table.insert(datMask, 1, 0)
+                    table.insert(datMask, 1.0, 0.0)
                 end
                 table.insert(input, dat)
                 table.insert(inputMask, datMask)
@@ -178,19 +179,21 @@ function getData.read(split, rho)
                 tmp, _ = string.gsub(qa_pair['question'], "%s(%p)", "%1")
                 table.insert(question, tmp)
                 tmp, _ = string.gsub(qa_pair['answer'], "%s(%p)", "%1")
+                table.insert(answer, tmp)
                 table.insert(choices, tmp)
                 table.insert(qa_id, tonumber(qa_pair["qa_id"]))
             end
         end
     end
-    ds.input =  torch.LongTensor(input)
-    ds.inputMask = torch.LongTensor(inputMask)
-    ds.target =  torch.LongTensor(target)
-    ds.img_id = torch.LongTensor(img_id)
+    ds.input =  torch.DoubleTensor(input)
+    ds.inputMask = torch.DoubleTensor(inputMask)
+    ds.target =  torch.DoubleTensor(target)
+    ds.img_id = torch.DoubleTensor(img_id)
     ds.size = #target
     --if split == 'test' then 
     ds.qa_id = qa_id
     ds.question = question
+    ds.answer = answer
     ds.choices = choices
     --end
     --print(tablesize(itow))

@@ -1,0 +1,51 @@
+Initializing model...	
+Training...	
+loading training data...	
+../data/dataset_v7w_telling_tokenized_train.json	
+loading validation data...	
+../data/dataset_v7w_telling_tokenized_val.json	
+nEpoch 1; 300/2182; err = 0.548020 	
+nEpoch 1; 600/2182; err = 0.526857 	
+nEpoch 1; 900/2182; err = 0.519395 	
+nEpoch 1; 1200/2182; err = 0.512377 	
+nEpoch 1; 1500/2182; err = 0.502897 	
+nEpoch 1; 1800/2182; err = 0.501819 	
+nEpoch 1; 2100/2182; err = 0.496090 	
+nEpoch 1 ; NLL train err = 0.514406 	
+nEpoch 1 ; NLL val err = 0.492182 	
+nEpoch 2; 300/2182; err = 0.480618 	
+nEpoch 2; 600/2182; err = 0.477503 	
+nEpoch 2; 900/2182; err = 0.473230 	
+nEpoch 2; 1200/2182; err = 0.466276 	
+nEpoch 2; 1500/2182; err = 0.459339 	
+nEpoch 2; 1800/2182; err = 0.458893 	
+nEpoch 2; 2100/2182; err = 0.454669 	
+nEpoch 2 ; NLL train err = 0.466509 	
+nEpoch 2 ; NLL val err = 0.467526 	
+nEpoch 3; 300/2182; err = 0.441410 	
+nEpoch 3; 600/2182; err = 0.439730 	
+nEpoch 3; 900/2182; err = 0.436415 	
+nEpoch 3; 1200/2182; err = 0.430021 	
+nEpoch 3; 1500/2182; err = 0.425766 	
+nEpoch 3; 1800/2182; err = 0.424756 	
+nEpoch 3; 2100/2182; err = 0.420997 	
+nEpoch 3 ; NLL train err = 0.430661 	
+nEpoch 3 ; NLL val err = 0.457329 	
+nEpoch 4; 300/2182; err = 0.407681 	
+nEpoch 4; 600/2182; err = 0.406536 	
+nEpoch 4; 900/2182; err = 0.403939 	
+nEpoch 4; 1200/2182; err = 0.397472 	
+nEpoch 4; 1500/2182; err = 0.394212 	
+nEpoch 4; 1800/2182; err = 0.391868 	
+nEpoch 4; 2100/2182; err = 0.387900 	
+nEpoch 4 ; NLL train err = 0.397860 	
+nEpoch 4 ; NLL val err = 0.456037 	
+nEpoch 5; 300/2182; err = 0.373966 	
+nEpoch 5; 600/2182; err = 0.373153 	
+nEpoch 5; 900/2182; err = 0.370719 	
+nEpoch 5; 1200/2182; err = 0.364446 	
+nEpoch 5; 1500/2182; err = 0.361443 	
+nEpoch 5; 1800/2182; err = 0.357003 	
+nEpoch 5; 2100/2182; err = 0.352506 	
+nEpoch 5 ; NLL train err = 0.364062 	
+nEpoch 5 ; NLL val err = 0.463288 	

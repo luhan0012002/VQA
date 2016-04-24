@@ -1,0 +1,20 @@
+Initializing model...	
+Training...	
+loading training data...	
+../data/dataset_v7w_telling_tokenized_train.json	
+loading validation data...	
+../data/dataset_v7w_telling_tokenized_val.json	
+nEpoch 1; 300/2182; err = 0.548876 	
+nEpoch 1; 600/2182; err = 0.522830 	
+nEpoch 1; 900/2182; err = 0.516331 	
+nEpoch 1; 1200/2182; err = 0.511627 	
+nEpoch 1; 1500/2182; err = 0.509179 	
+nEpoch 1; 1800/2182; err = 0.504467 	
+nEpoch 1; 2100/2182; err = 0.502185 	
+nEpoch 1 ; NLL train err = 0.515806 	
+nEpoch 1 ; NLL val err = 0.500682 	
+nEpoch 2; 300/2182; err = 0.500442 	
+nEpoch 2; 600/2182; err = 0.491439 	
+nEpoch 2; 900/2182; err = 0.487337 	
+nEpoch 2; 1200/2182; err = 0.486549 	
+nEpoch 2; 1500/2182; err = 0.486428 	

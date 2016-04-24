@@ -31,15 +31,16 @@ function GenerateAns.generateAns(ds_test, protos, ans_path)
     for n = 1, nBatches_test do
         print(string.format("%d/%d", n, nBatches_test))
         -- get next training/testing batch
-        local words, fc7, conv4, targets = torch.LongTensor(),torch.LongTensor(),torch.LongTensor(), torch.LongTensor() 
-        words, fc7, conv4, targets = words:cuda(), fc7:cuda(), conv4:cuda(), targets:cuda()
+        local words, fc7, conv4, mask, targets = torch.LongTensor(),torch.LongTensor(),torch.LongTensor(), torch.LongTensor(), torch.LongTensor()
+        words, fc7, conv4, mask, targets = words:cuda(), fc7:cuda(), conv4:cuda(), mask:cuda(), targets:cuda()
 
         -- get mini-batch
-        local inputs = Utils.getNextBatch(ds_test, ds_test.indices, n, words, fc7, conv4, targets)
+        local inputs = Utils.getNextBatch(ds_test, ds_test.indices, n, words, fc7, conv4, mask, targets)
         words = inputs[1]
         fc7 = inputs[2]
         conv4 = inputs[3]
-        local totalInput = {fc7, words, conv4}
+        mask = inputs[4]
+        local totalInput = {fc7, words, conv4, mask}
         -- forward step
         local batchSize = words:size(1)
         local totalOutput, err = Train.forward(clones, protos, totalInput, targets, batchSize)

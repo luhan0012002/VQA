@@ -12,29 +12,35 @@ local model = require 'model'
 local Utils = require 'utils'
 --local GenerateAns = require 'generateAns'
 local Train = {}
---[[
+
 function Train.maskConv(batchSize, t)
-    print(mask:size())
-    maskConv4 = torch.Tensor():resize(mask:size()):cuda()
-    for batch = 1, batchSize do
-        local tmp = conv4[{batch, {}, {}}]
-        local scale = mask[batch][t]
-        print(tmp:size())
-        print(scale)
-        maskConv4[{batch, {}, {}}] = scale*(torch.Tensor(tmp):cuda())
+    --maskConv4:fill(0)
+    --maskConv4:double()
+    if torch.sum(mask:narrow(2, t, 1)) ~= 0 then
+        if t>1 and (mask:narrow(2, t, 1):eq(mask:narrow(2, t-1, 1))):all() then
+            return
+        end
+        for batch = 1, batchSize do
+        --maskConv4[{batch, {}, {}}]:add(mask[batch][t], conv4[{batch, {}, {}}]:double())
+            if mask[batch][t] ~= 0 then
+                maskConv4[{batch, {}, {}}] = conv4[{batch, {}, {}}]
+            end
+        end
     end
 end
---]]
+
 function Train.forward(clones, protos, totalInput, targets, batchSize)
     fc7, words, conv4, mask = unpack(totalInput)
     ht = {}
     ct = {}
     rt = {}
     at = {}
+    --mask = mask:double()
+    --conv4 = conv4:double()
+    maskConv4 = torch.CudaTensor():resizeAs(conv4):fill(0)
     wordEmbed = {}
-    maskConv4 = torch.expand(mask:narrow(2,1,1):contiguous():view(mask:size(1), 1, 1), mask:size(1), numConvFeature, convFeatureSize)
-    maskConv4:cmul(conv4)
-    tmpAtt = clones['attention'][1]:forward({torch.CudaTensor(batchSize, hiddenSize):fill(0), maskConv4:contiguous()})
+    Train.maskConv(batchSize, 1)
+    tmpAtt = clones['attention'][1]:forward({torch.CudaTensor(batchSize, hiddenSize):fill(0), maskConv4})
     table.insert(rt, tmpAtt[1])
     table.insert(at, tmpAtt[2])
     table.insert(wordEmbed, clones['wordEmbed'][1]:forward(words:select(2,1)))
@@ -43,9 +49,9 @@ function Train.forward(clones, protos, totalInput, targets, batchSize)
     table.insert(ct, tmp[2])
     for t = 2, rho do
         table.insert(wordEmbed, clones['wordEmbed'][t]:forward(words:select(2,t)))
-        maskConv4 = torch.expand(mask:narrow(2,t,1):contiguous():view(mask:size(1), 1, 1), mask:size(1), numConvFeature, convFeatureSize)
-        maskConv4:cmul(conv4)
-        tmpAtt = clones['attention'][t]:forward({ht[t-1], maskConv4:contiguous()})
+        Train.maskConv(batchSize, t)
+        --print(torch.sum(maskConv4))
+        tmpAtt = clones['attention'][t]:forward({ht[t-1], maskConv4})
         table.insert(rt, tmpAtt[1])
         table.insert(at, tmpAtt[2])
         local tmp = clones['lstm'][t]:forward({wordEmbed[t], ht[t-1], ct[t-1], rt[t]})
@@ -53,7 +59,7 @@ function Train.forward(clones, protos, totalInput, targets, batchSize)
         table.insert(ct, tmp[2])
     end 
     imageEmbed = protos.imageEmbed:forward(fc7)
-    tmpAtt = clones['attention'][rho+1]:forward({ht[rho], maskConv4:contiguous()}) -- use mask[rho] because we dont have mask[rho+1]
+    tmpAtt = clones['attention'][rho+1]:forward({ht[rho], maskConv4}) -- use mask[rho] because we dont have mask[rho+1]
     table.insert(rt, tmpAtt[1])
     table.insert(at, tmpAtt[2])
     local tmp = clones['lstm'][rho+1]:forward({imageEmbed, ht[rho], ct[rho], rt[rho+1]})
@@ -67,26 +73,25 @@ end
 
 function Train.backward(clones, protos, totalInput, targets, totalOutput, grad_params, batchSize)
     fc7, words, conv4, mask = unpack(totalInput)
+    mask = mask:double()
+    conv4 = conv4:double()
     ht, ct, rt, wordEmbed, imageEmbed, outputs = unpack(totalOutput)
     gradOutput = protos.criterion:backward(outputs, targets)
     prevGradInput = protos.classify:backward(ht[rho+1], gradOutput)
     prevGradInput = clones['lstm'][rho+1]:backward({imageEmbed, ht[rho], ct[rho], rt[rho+1]}, {prevGradInput, torch.CudaTensor(batchSize, hiddenSize):fill(0)})
-    maskConv4 = torch.expand(mask:narrow(2,rho,1):contiguous():view(mask:size(1), 1, 1), mask:size(1), numConvFeature, convFeatureSize)
-    maskConv4:cmul(conv4)
-    clones['attention'][rho+1]:backward({ht[rho], maskConv4:contiguous()}, {prevGradInput[4], torch.CudaTensor(batchSize, numConvFeature):fill(0)})
+    Train.maskConv(batchSize, rho)
+    clones['attention'][rho+1]:backward({ht[rho], maskConv4}, {prevGradInput[4], torch.CudaTensor(batchSize, numConvFeature):fill(0)})
     protos.imageEmbed:backward(fc7, prevGradInput[1])
     for t = rho, 2, -1 do
         prevGradInput = clones['lstm'][t]:backward({wordEmbed[t], ht[t-1], ct[t-1], rt[t]}, {prevGradInput[2], prevGradInput[3]})
-        maskConv4 = torch.expand(mask:narrow(2,t,1):contiguous():view(mask:size(1), 1, 1), mask:size(1), numConvFeature, convFeatureSize)
-        maskConv4:cmul(conv4)
-        clones['attention'][t]:backward({ht[t-1], maskConv4:contiguous()}, {prevGradInput[4], torch.CudaTensor(batchSize, numConvFeature):fill(0)})
+        Train.maskConv(batchSize, t)
+        clones['attention'][t]:backward({ht[t-1], maskConv4}, {prevGradInput[4], torch.CudaTensor(batchSize, numConvFeature):fill(0)})
         clones['wordEmbed'][t]:backward(words:select(2, t), prevGradInput[1])
     end
     prevGradInput = clones['lstm'][1]:backward({wordEmbed[1], torch.CudaTensor(batchSize, hiddenSize):fill(0), torch.CudaTensor(batchSize, hiddenSize):fill(0), rt[1]}, {prevGradInput[2], prevGradInput[3]})
     clones['wordEmbed'][1]:backward(words:select(2,1), prevGradInput[1])
-    maskConv4 = torch.expand(mask:narrow(2,1,1):contiguous():view(mask:size(1), 1, 1), mask:size(1), numConvFeature, convFeatureSize)
-    maskConv4:cmul(conv4)
-    clones['attention'][1]:backward({torch.CudaTensor(batchSize, hiddenSize):fill(0), maskConv4:contiguous()}, {prevGradInput[4], torch.CudaTensor(batchSize, numConvFeature):fill(0)})
+    Train.maskConv(batchSize, 1)
+    clones['attention'][1]:backward({torch.CudaTensor(batchSize, hiddenSize):fill(0), maskConv4}, {prevGradInput[4], torch.CudaTensor(batchSize, numConvFeature):fill(0)})
     grad_params:clamp(-5, 5)
 end
 
@@ -106,7 +111,7 @@ function Train.train_sgd(protos, ds, ds_val, solver_params)
         local sanity_check_err = 0
         for n = 1, nBatches do
             -- get next training/testing batch
-            local words, fc7, mask, conv4, targets = torch.LongTensor(),torch.LongTensor(),torch.LongTensor(), torch.LongTensor(), torch.LongTensor() 
+            local words, fc7, conv4, mask, targets = torch.Tensor(),torch.Tensor(),torch.Tensor(), torch.Tensor(), torch.Tensor() 
             words, fc7, conv4, mask, targets = words:cuda(), fc7:cuda(), conv4:cuda(), mask:cuda(), targets:cuda()
             local gradOutput = nil
             local gradInput = nil
@@ -149,7 +154,7 @@ function Train.train_sgd(protos, ds, ds_val, solver_params)
         --os.execute("python evaluate.py --split val --mode mc --results './val_ans.json' --verbose 1")
         local val_err = 0
         for n = 1, nBatches_val do
-            local words, fc7, conv4, mask, targets = torch.LongTensor(),torch.LongTensor(),torch.LongTensor(), torch.LongTensor(), torch.LongTensor()
+            local words, fc7, conv4, mask, targets = torch.Tensor(),torch.Tensor(),torch.Tensor(), torch.Tensor(), torch.Tensor()
             words, fc7, conv4, mask, targets = words:cuda(), fc7:cuda(), conv4:cuda(), mask:cuda(), targets:cuda() 
             local inputs = Utils.getNextBatch(ds_val, ds_val.indices, n, words, fc7, conv4, mask, targets)
             fc7 = inputs[2]
